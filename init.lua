@@ -51,6 +51,9 @@ vim.o.foldlevel = 99
 vim.o.foldlevelstart = 99
 vim.o.foldenable = true
 
+-- Window separators
+vim.opt.fillchars:append { vert = '▐', horiz = '▄', verthoriz = '▐', horizup = '▄', horizdown = '▄', vertleft = '▐', vertright = '▐' }
+
 -- Indentation defaults (guess-indent will override per-file)
 vim.o.tabstop = 2
 vim.o.shiftwidth = 2
@@ -178,6 +181,15 @@ vim.api.nvim_create_autocmd('FileType', {
   pattern = 'neo-tree',
   callback = function()
     vim.opt_local.statusline = ' '
+  end,
+})
+
+-- Git commit messages: set up for quick editing
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'gitcommit',
+  callback = function()
+    vim.opt_local.spell = true
+    vim.opt_local.textwidth = 72
   end,
 })
 
@@ -488,11 +500,16 @@ require('lazy').setup({
             [vim.diagnostic.severity.HINT] = '󰌶 ',
           },
         } or {},
-        virtual_text = {
-          source = 'if_many',
-          spacing = 2,
-        },
+        virtual_text = false, -- Disable inline text (gets cut off in splits)
+        virtual_lines = false,
       }
+
+      -- Show diagnostics in a float on cursor hold instead
+      vim.api.nvim_create_autocmd('CursorHold', {
+        callback = function()
+          vim.diagnostic.open_float(nil, { focusable = false, border = 'rounded', max_width = 80 })
+        end,
+      })
 
       local capabilities = require('blink.cmp').get_lsp_capabilities()
 
@@ -665,6 +682,15 @@ require('lazy').setup({
     },
   },
 
+  -- Sticky context (shows current function/class at top of viewport)
+  {
+    'nvim-treesitter/nvim-treesitter-context',
+    event = 'BufReadPost',
+    opts = {
+      max_lines = 3,
+    },
+  },
+
   -- ========================================================================
   -- UI: Clean aesthetic extras
   -- ========================================================================
@@ -801,6 +827,19 @@ require('lazy').setup({
             end
           end,
           ['h'] = 'close_node', -- Collapse folder / go to parent
+          ['Y'] = function(state)
+            local node = state.tree:get_node()
+            local filename = node.name
+            vim.fn.setreg('+', filename)
+            vim.notify('Copied: ' .. filename)
+          end,
+          ['y'] = function(state)
+            local node = state.tree:get_node()
+            local filepath = node:get_id()
+            local relative = vim.fn.fnamemodify(filepath, ':.')
+            vim.fn.setreg('+', relative)
+            vim.notify('Copied: ' .. relative)
+          end,
         },
       },
     },
