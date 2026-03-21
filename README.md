@@ -15,6 +15,7 @@ Personal Neovim configuration built on [kickstart.nvim](https://github.com/nvim-
 - **Neo-tree** file explorer
 - **LazyGit** integration
 - **Gitsigns** with inline blame
+- **Statusline** — mode, filename, line count, git branch
 - **Multiple terminal buffers** (4 quick-toggle slots)
 - **Code folding** via nvim-ufo (treesitter-based)
 - **GLSL shader** syntax support
