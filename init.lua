@@ -944,6 +944,8 @@ require('lazy').setup({
     ft = { 'glsl', 'vert', 'frag', 'geom', 'comp' },
   },
 
+  { import = 'custom.plugins' },
+
 }, {
   ui = {
     icons = vim.g.have_nerd_font and {} or {
