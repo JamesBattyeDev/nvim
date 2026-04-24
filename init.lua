@@ -60,9 +60,7 @@ vim.o.shiftwidth = 2
 vim.o.expandtab = true
 
 -- Sync clipboard with OS
-vim.schedule(function()
-  vim.o.clipboard = 'unnamedplus'
-end)
+vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
 
 -- ============================================================================
 -- KEYMAPS
@@ -128,23 +126,17 @@ function ToggleTerminal(id)
     end
   end
 
-  vim.cmd('botright 15split')
+  vim.cmd 'botright 15split'
 
   if terminals[id] and terminals[id].buf and vim.api.nvim_buf_is_valid(terminals[id].buf) then
     vim.api.nvim_set_current_buf(terminals[id].buf)
   else
-    vim.cmd('terminal')
+    vim.cmd 'terminal'
     terminals[id] = { buf = vim.api.nvim_get_current_buf() }
   end
   terminals[id].win = vim.api.nvim_get_current_win()
-  vim.cmd('startinsert')
+  vim.cmd 'startinsert'
 end
-
-vim.keymap.set('n', '<leader>t1', function() ToggleTerminal(1) end, { desc = '[T]erminal [1]' })
-vim.keymap.set('n', '<leader>t2', function() ToggleTerminal(2) end, { desc = '[T]erminal [2]' })
-vim.keymap.set('n', '<leader>t3', function() ToggleTerminal(3) end, { desc = '[T]erminal [3]' })
-vim.keymap.set('n', '<leader>t4', function() ToggleTerminal(4) end, { desc = '[T]erminal [4]' })
-vim.keymap.set('n', '<leader>tt', function() ToggleTerminal(1) end, { desc = '[T]oggle [T]erminal' })
 
 -- Quick terminal access: <space><space> opens terminal picker
 -- a/s/d/f = terminal 1/2/3/4
@@ -152,6 +144,7 @@ vim.keymap.set('n', '<leader><leader>a', function() ToggleTerminal(1) end, { des
 vim.keymap.set('n', '<leader><leader>s', function() ToggleTerminal(2) end, { desc = 'Terminal 2' })
 vim.keymap.set('n', '<leader><leader>d', function() ToggleTerminal(3) end, { desc = 'Terminal 3' })
 vim.keymap.set('n', '<leader><leader>f', function() ToggleTerminal(4) end, { desc = 'Terminal 4' })
+vim.keymap.set('n', '<leader><leader>g', function() ToggleTerminal(5) end, { desc = 'Terminal 5' })
 
 -- <space><space><space> closes any open terminal
 vim.keymap.set('n', '<leader><leader><leader>', function()
@@ -171,17 +164,13 @@ end, { desc = 'Close all terminals' })
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
-  callback = function()
-    vim.hl.on_yank()
-  end,
+  callback = function() vim.hl.on_yank() end,
 })
 
 -- Hide statusline on neo-tree
 vim.api.nvim_create_autocmd('FileType', {
   pattern = 'neo-tree',
-  callback = function()
-    vim.opt_local.statusline = ' '
-  end,
+  callback = function() vim.opt_local.statusline = ' ' end,
 })
 
 -- Git commit messages: set up for quick editing
@@ -201,9 +190,7 @@ local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   local lazyrepo = 'https://github.com/folke/lazy.nvim.git'
   local out = vim.fn.system { 'git', 'clone', '--filter=blob:none', '--branch=stable', lazyrepo, lazypath }
-  if vim.v.shell_error ~= 0 then
-    error('Error cloning lazy.nvim:\n' .. out)
-  end
+  if vim.v.shell_error ~= 0 then error('Error cloning lazy.nvim:\n' .. out) end
 end
 ---@type vim.Option
 local rtp = vim.opt.rtp
@@ -293,11 +280,22 @@ require('lazy').setup({
       icons = {
         mappings = vim.g.have_nerd_font,
         keys = vim.g.have_nerd_font and {} or {
-          Up = '<Up> ', Down = '<Down> ', Left = '<Left> ', Right = '<Right> ',
-          C = '<C-…> ', M = '<M-…> ', D = '<D-…> ', S = '<S-…> ',
-          CR = '<CR> ', Esc = '<Esc> ', ScrollWheelDown = '<ScrollWheelDown> ',
-          ScrollWheelUp = '<ScrollWheelUp> ', NL = '<NL> ', BS = '<BS> ',
-          Space = '<Space> ', Tab = '<Tab> ',
+          Up = '<Up> ',
+          Down = '<Down> ',
+          Left = '<Left> ',
+          Right = '<Right> ',
+          C = '<C-…> ',
+          M = '<M-…> ',
+          D = '<D-…> ',
+          S = '<S-…> ',
+          CR = '<CR> ',
+          Esc = '<Esc> ',
+          ScrollWheelDown = '<ScrollWheelDown> ',
+          ScrollWheelUp = '<ScrollWheelUp> ',
+          NL = '<NL> ',
+          BS = '<BS> ',
+          Space = '<Space> ',
+          Tab = '<Tab> ',
         },
       },
       spec = {
@@ -320,9 +318,7 @@ require('lazy').setup({
       {
         'nvim-telescope/telescope-fzf-native.nvim',
         build = 'make',
-        cond = function()
-          return vim.fn.executable 'make' == 1
-        end,
+        cond = function() return vim.fn.executable 'make' == 1 end,
       },
       { 'nvim-telescope/telescope-ui-select.nvim' },
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
@@ -359,25 +355,33 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files' })
 
       -- Search in current buffer
-      vim.keymap.set('n', '<leader>/', function()
-        builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
-          winblend = 10,
-          previewer = false,
-        })
-      end, { desc = '[/] Fuzzily search in current buffer' })
+      vim.keymap.set(
+        'n',
+        '<leader>/',
+        function()
+          builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
+            winblend = 10,
+            previewer = false,
+          })
+        end,
+        { desc = '[/] Fuzzily search in current buffer' }
+      )
 
       -- Search in open files
-      vim.keymap.set('n', '<leader>s/', function()
-        builtin.live_grep {
-          grep_open_files = true,
-          prompt_title = 'Live Grep in Open Files',
-        }
-      end, { desc = '[S]earch [/] in Open Files' })
+      vim.keymap.set(
+        'n',
+        '<leader>s/',
+        function()
+          builtin.live_grep {
+            grep_open_files = true,
+            prompt_title = 'Live Grep in Open Files',
+          }
+        end,
+        { desc = '[S]earch [/] in Open Files' }
+      )
 
       -- Search neovim config files
-      vim.keymap.set('n', '<leader>sn', function()
-        builtin.find_files { cwd = vim.fn.stdpath 'config' }
-      end, { desc = '[S]earch [N]eovim files' })
+      vim.keymap.set('n', '<leader>sn', function() builtin.find_files { cwd = vim.fn.stdpath 'config' } end, { desc = '[S]earch [N]eovim files' })
 
       -- Project switcher: fuzzy find folders in your Code directory
       vim.keymap.set('n', '<leader>sp', function()
@@ -480,9 +484,7 @@ require('lazy').setup({
 
           -- Toggle inlay hints
           if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
-            map('<leader>th', function()
-              vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
-            end, '[T]oggle Inlay [H]ints')
+            map('<leader>th', function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf }) end, '[T]oggle Inlay [H]ints')
           end
         end,
       })
@@ -506,9 +508,7 @@ require('lazy').setup({
 
       -- Show diagnostics in a float on cursor hold instead
       vim.api.nvim_create_autocmd('CursorHold', {
-        callback = function()
-          vim.diagnostic.open_float(nil, { focusable = false, border = 'rounded', max_width = 80 })
-        end,
+        callback = function() vim.diagnostic.open_float(nil, { focusable = false, border = 'rounded', max_width = 80 }) end,
       })
 
       local capabilities = require('blink.cmp').get_lsp_capabilities()
@@ -536,8 +536,15 @@ require('lazy').setup({
         -- Emmet for fast HTML/CSS expansion
         emmet_ls = {
           filetypes = {
-            'html', 'css', 'scss', 'javascript', 'javascriptreact',
-            'typescript', 'typescriptreact', 'jsx', 'tsx',
+            'html',
+            'css',
+            'scss',
+            'javascript',
+            'javascriptreact',
+            'typescript',
+            'typescriptreact',
+            'jsx',
+            'tsx',
           },
         },
 
@@ -553,7 +560,7 @@ require('lazy').setup({
 
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
-        'stylua',    -- Lua formatter
+        'stylua', -- Lua formatter
         'prettierd', -- JS/TS/CSS/HTML formatter (fast daemon version)
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
@@ -582,9 +589,7 @@ require('lazy').setup({
     keys = {
       {
         '<leader>f',
-        function()
-          require('conform').format { async = true, lsp_format = 'fallback' }
-        end,
+        function() require('conform').format { async = true, lsp_format = 'fallback' } end,
         mode = '',
         desc = '[F]ormat buffer',
       },
@@ -593,9 +598,7 @@ require('lazy').setup({
       notify_on_error = false,
       format_on_save = function(bufnr)
         local disable_filetypes = { c = true, cpp = true }
-        if disable_filetypes[vim.bo[bufnr].filetype] then
-          return nil
-        end
+        if disable_filetypes[vim.bo[bufnr].filetype] then return nil end
         return { timeout_ms = 500, lsp_format = 'fallback' }
       end,
       formatters_by_ft = {
@@ -624,18 +627,14 @@ require('lazy').setup({
         'L3MON4D3/LuaSnip',
         version = '2.*',
         build = (function()
-          if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then
-            return
-          end
+          if vim.fn.has 'win32' == 1 or vim.fn.executable 'make' == 0 then return end
           return 'make install_jsregexp'
         end)(),
         dependencies = {
           -- Premade snippets for many languages (JS, TS, HTML, CSS, etc.)
           {
             'rafamadriz/friendly-snippets',
-            config = function()
-              require('luasnip.loaders.from_vscode').lazy_load()
-            end,
+            config = function() require('luasnip.loaders.from_vscode').lazy_load() end,
           },
         },
         opts = {},
@@ -672,14 +671,66 @@ require('lazy').setup({
     main = 'nvim-treesitter',
     opts = {
       ensure_installed = {
-        'bash', 'c', 'css', 'diff', 'glsl', 'html', 'javascript',
-        'json', 'lua', 'luadoc', 'markdown', 'markdown_inline',
-        'query', 'scss', 'typescript', 'tsx', 'vim', 'vimdoc', 'yaml',
+        'bash',
+        'c',
+        'css',
+        'diff',
+        'glsl',
+        'html',
+        'javascript',
+        'json',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'query',
+        'scss',
+        'typescript',
+        'tsx',
+        'vim',
+        'vimdoc',
+        'yaml',
       },
       auto_install = true,
       highlight = { enable = true },
       indent = { enable = true },
     },
+  },
+
+  -- Treesitter textobjects (function navigation with ]m / [m)
+  {
+    'nvim-treesitter/nvim-treesitter-textobjects',
+    branch = 'main',
+    config = function()
+      require('nvim-treesitter-textobjects').setup {
+        move = { set_jumps = true },
+      }
+
+      vim.keymap.set(
+        { 'n', 'x', 'o' },
+        ']m',
+        function() require('nvim-treesitter-textobjects.move').goto_next_start('@function.outer', 'textobjects') end,
+        { desc = 'Next function start' }
+      )
+      vim.keymap.set(
+        { 'n', 'x', 'o' },
+        ']M',
+        function() require('nvim-treesitter-textobjects.move').goto_next_end('@function.outer', 'textobjects') end,
+        { desc = 'Next function end' }
+      )
+      vim.keymap.set(
+        { 'n', 'x', 'o' },
+        '[m',
+        function() require('nvim-treesitter-textobjects.move').goto_previous_start('@function.outer', 'textobjects') end,
+        { desc = 'Previous function start' }
+      )
+      vim.keymap.set(
+        { 'n', 'x', 'o' },
+        '[M',
+        function() require('nvim-treesitter-textobjects.move').goto_previous_end('@function.outer', 'textobjects') end,
+        { desc = 'Previous function end' }
+      )
+    end,
   },
 
   -- Sticky context (shows current function/class at top of viewport)
@@ -747,9 +798,7 @@ require('lazy').setup({
       -- Comment toggle (gcc for line, gc in visual mode)
       require('mini.comment').setup {
         options = {
-          custom_commentstring = function()
-            return require('ts_context_commentstring').calculate_commentstring() or vim.bo.commentstring
-          end,
+          custom_commentstring = function() return require('ts_context_commentstring').calculate_commentstring() or vim.bo.commentstring end,
         },
       }
 
@@ -822,9 +871,7 @@ require('lazy').setup({
           ['l'] = function(state)
             local node = state.tree:get_node()
             if node.type == 'directory' then
-              if not node:is_expanded() then
-                require('neo-tree.sources.filesystem').toggle_directory(state, node)
-              end
+              if not node:is_expanded() then require('neo-tree.sources.filesystem').toggle_directory(state, node) end
             end
           end,
           ['h'] = 'close_node', -- Collapse folder / go to parent
@@ -896,9 +943,7 @@ require('lazy').setup({
             local hlGroup = chunk[2]
             table.insert(newVirtText, { chunkText, hlGroup })
             chunkWidth = vim.fn.strdisplaywidth(chunkText)
-            if curWidth + chunkWidth < targetWidth then
-              suffix = suffix .. (' '):rep(targetWidth - curWidth - chunkWidth)
-            end
+            if curWidth + chunkWidth < targetWidth then suffix = suffix .. (' '):rep(targetWidth - curWidth - chunkWidth) end
             break
           end
           curWidth = curWidth + chunkWidth
@@ -908,9 +953,7 @@ require('lazy').setup({
       end
 
       require('ufo').setup {
-        provider_selector = function()
-          return { 'treesitter', 'indent' }
-        end,
+        provider_selector = function() return { 'treesitter', 'indent' } end,
         fold_virt_text_handler = handler,
         close_fold_kinds_for_ft = {
           default = { 'imports' },
@@ -921,9 +964,7 @@ require('lazy').setup({
       vim.keymap.set('n', 'zM', require('ufo').closeAllFolds, { desc = 'Close all folds' })
       vim.keymap.set('n', 'zr', require('ufo').openFoldsExceptKinds, { desc = 'Open folds except kinds' })
       vim.keymap.set('n', 'zm', require('ufo').closeFoldsWith, { desc = 'Close folds with level' })
-      vim.keymap.set('n', 'zp', function()
-        require('ufo').peekFoldedLinesUnderCursor()
-      end, { desc = 'Peek folded lines' })
+      vim.keymap.set('n', 'zp', function() require('ufo').peekFoldedLinesUnderCursor() end, { desc = 'Peek folded lines' })
     end,
   },
 
@@ -945,13 +986,22 @@ require('lazy').setup({
   },
 
   { import = 'custom.plugins' },
-
 }, {
   ui = {
     icons = vim.g.have_nerd_font and {} or {
-      cmd = '⌘', config = '🛠', event = '📅', ft = '📂', init = '⚙',
-      keys = '🗝', plugin = '🔌', runtime = '💻', require = '🌙',
-      source = '📄', start = '🚀', task = '📌', lazy = '💤 ',
+      cmd = '⌘',
+      config = '🛠',
+      event = '📅',
+      ft = '📂',
+      init = '⚙',
+      keys = '🗝',
+      plugin = '🔌',
+      runtime = '💻',
+      require = '🌙',
+      source = '📄',
+      start = '🚀',
+      task = '📌',
+      lazy = '💤 ',
     },
   },
 })
