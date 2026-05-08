@@ -1,5 +1,6 @@
 --[[
   James's Neovim Config
+  Requires: Neovim 0.12+, tree-sitter-cli (brew install tree-sitter-cli)
   Based on kickstart.nvim, customized for:
   - Webflow custom code (JS/CSS/HTML)
   - Full-stack JS/TS projects
@@ -11,6 +12,10 @@
   Run :Lazy to manage plugins
   Run :Mason to manage language servers
   Press <space> and wait to see available keybinds (which-key)
+
+  Navigation:
+  ]m / [m  - Jump to next/prev function start (treesitter)
+  ]M / [M  - Jump to next/prev function end (treesitter)
 --]]
 
 -- Set <space> as the leader key (must happen before plugins load)
@@ -539,12 +544,6 @@ require('lazy').setup({
             'html',
             'css',
             'scss',
-            'javascript',
-            'javascriptreact',
-            'typescript',
-            'typescriptreact',
-            'jsx',
-            'tsx',
           },
         },
 
@@ -644,7 +643,10 @@ require('lazy').setup({
     --- @module 'blink.cmp'
     --- @type blink.cmp.Config
     opts = {
-      keymap = { preset = 'default' },
+      keymap = {
+        preset = 'default',
+        ['<CR>'] = { 'accept', 'fallback' },
+      },
       appearance = { nerd_font_variant = 'mono' },
       completion = {
         documentation = { auto_show = true, auto_show_delay_ms = 200 },
