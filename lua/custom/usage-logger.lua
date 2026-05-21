@@ -1,0 +1,238 @@
+-- Usage Logger — logs Neovim usage patterns for LLM analysis
+-- Toggle: <leader>tu | Logs: usage/*.jsonl (gitignored)
+
+local M = {}
+
+local enabled = false
+local augroup = nil
+local on_key_ns = nil
+local log_buffer = {}
+local flush_timer = nil
+local FLUSH_INTERVAL_MS = 10000
+local FLUSH_THRESHOLD = 100
+local CONFIG_DIR = vim.fn.stdpath 'config'
+local USAGE_DIR = CONFIG_DIR .. '/usage'
+
+-- Modes where keystrokes are logged (normal, visual, visual-line, visual-block, operator-pending)
+local LOG_MODES = { n = true, v = true, V = true, ['\22'] = true, no = true }
+
+local function get_timestamp()
+  local sec, usec = vim.uv.gettimeofday()
+  local ms = math.floor(usec / 1000)
+  return os.date('!%Y-%m-%dT%H:%M:%S', sec) .. string.format('.%03d', ms)
+end
+
+local function get_log_path()
+  return USAGE_DIR .. '/' .. os.date '%Y-%m-%d' .. '.jsonl'
+end
+
+local function buf_context()
+  local buf = vim.api.nvim_get_current_buf()
+  local name = vim.api.nvim_buf_get_name(buf)
+  return {
+    buf = vim.fn.fnamemodify(name, ':t'),
+    ft = vim.bo[buf].filetype,
+  }
+end
+
+local function log_entry(event_name, data)
+  if not enabled then
+    return
+  end
+  data = data or {}
+  data.ts = get_timestamp()
+  data.event = event_name
+  if not data.buf then
+    local ctx = buf_context()
+    data.buf = ctx.buf
+    data.ft = ctx.ft
+  end
+  table.insert(log_buffer, vim.json.encode(data))
+  if #log_buffer >= FLUSH_THRESHOLD then
+    M._flush()
+  end
+end
+
+function M._flush()
+  if #log_buffer == 0 then
+    return
+  end
+  local path = get_log_path()
+  local lines = table.concat(log_buffer, '\n') .. '\n'
+  log_buffer = {}
+
+  vim.uv.fs_open(path, 'a', 438, function(err_open, fd)
+    if err_open or not fd then
+      return
+    end
+    vim.uv.fs_write(fd, lines, -1, function()
+      vim.uv.fs_close(fd, function() end)
+    end)
+  end)
+end
+
+local function flush_sync()
+  if #log_buffer == 0 then
+    return
+  end
+  local path = get_log_path()
+  local lines = table.concat(log_buffer, '\n') .. '\n'
+  log_buffer = {}
+  local fd = vim.uv.fs_open(path, 'a', 438)
+  if fd then
+    vim.uv.fs_write(fd, lines)
+    vim.uv.fs_close(fd)
+  end
+end
+
+local function register_on_key()
+  on_key_ns = vim.on_key(function(raw, typed)
+    if not enabled then
+      return
+    end
+    if not typed or typed == '' then
+      return
+    end
+    local mode = vim.fn.mode()
+    if not LOG_MODES[mode] then
+      return
+    end
+    local key = vim.fn.keytrans(typed)
+    if key == '' then
+      return
+    end
+    log_entry('key', { key = key, mode = mode })
+  end)
+end
+
+local function deregister_on_key()
+  if on_key_ns then
+    vim.on_key(nil, on_key_ns)
+    on_key_ns = nil
+  end
+end
+
+local function register_autocmds()
+  augroup = vim.api.nvim_create_augroup('usage-logger', { clear = true })
+
+  vim.api.nvim_create_autocmd('ModeChanged', {
+    group = augroup,
+    callback = function(ev)
+      local old, new = ev.match:match '(.+):(.+)'
+      log_entry('ModeChanged', { old_mode = old, new_mode = new })
+    end,
+  })
+
+  vim.api.nvim_create_autocmd('BufEnter', {
+    group = augroup,
+    callback = function()
+      local buf = vim.api.nvim_get_current_buf()
+      log_entry('BufEnter', { lines = vim.api.nvim_buf_line_count(buf) })
+    end,
+  })
+
+  vim.api.nvim_create_autocmd('BufWritePost', {
+    group = augroup,
+    callback = function()
+      log_entry 'BufWritePost'
+    end,
+  })
+
+  vim.api.nvim_create_autocmd('CmdlineEnter', {
+    group = augroup,
+    callback = function()
+      log_entry('CmdlineEnter', { cmdtype = vim.fn.getcmdtype() })
+    end,
+  })
+
+  vim.api.nvim_create_autocmd('CmdlineLeave', {
+    group = augroup,
+    callback = function()
+      local cmdtype = vim.fn.getcmdtype()
+      local cmdline = vim.fn.getcmdline()
+      local verb = (cmdtype == ':') and cmdline:match '^(%S+)' or nil
+      log_entry('CmdlineLeave', { cmdtype = cmdtype, verb = verb })
+    end,
+  })
+
+  vim.api.nvim_create_autocmd('TextYankPost', {
+    group = augroup,
+    callback = function()
+      local yank = vim.v.event
+      log_entry('TextYankPost', {
+        operator = yank.operator,
+        regtype = yank.regtype,
+        visual = yank.visual,
+      })
+    end,
+  })
+
+  vim.api.nvim_create_autocmd('VimLeavePre', {
+    group = augroup,
+    callback = flush_sync,
+  })
+end
+
+local function start_timer()
+  flush_timer = vim.uv.new_timer()
+  flush_timer:start(FLUSH_INTERVAL_MS, FLUSH_INTERVAL_MS, vim.schedule_wrap(M._flush))
+end
+
+local function stop_timer()
+  if flush_timer then
+    flush_timer:stop()
+    flush_timer:close()
+    flush_timer = nil
+  end
+end
+
+function M.enable()
+  if enabled then
+    return
+  end
+  vim.fn.mkdir(USAGE_DIR, 'p')
+  enabled = true
+  register_autocmds()
+  register_on_key()
+  start_timer()
+  log_entry 'LoggerEnabled'
+  vim.notify('Usage logger ON', vim.log.levels.INFO)
+end
+
+function M.disable()
+  if not enabled then
+    return
+  end
+  log_entry 'LoggerDisabled'
+  M._flush()
+  enabled = false
+  deregister_on_key()
+  stop_timer()
+  if augroup then
+    vim.api.nvim_del_augroup_by_id(augroup)
+    augroup = nil
+  end
+  vim.notify('Usage logger OFF', vim.log.levels.INFO)
+end
+
+function M.toggle()
+  if enabled then
+    M.disable()
+  else
+    M.enable()
+  end
+end
+
+function M.is_enabled()
+  return enabled
+end
+
+function M.setup(opts)
+  opts = opts or {}
+  if opts.auto_start ~= false then
+    M.enable()
+  end
+  vim.keymap.set('n', '<leader>tu', M.toggle, { desc = '[T]oggle [U]sage logger' })
+end
+
+return M

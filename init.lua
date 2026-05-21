@@ -77,6 +77,12 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 -- Diagnostic quickfix
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
+-- Quickfix navigation
+vim.keymap.set('n', ']q', '<cmd>cnext<CR>zz', { desc = 'Next quickfix item' })
+vim.keymap.set('n', '[q', '<cmd>cprev<CR>zz', { desc = 'Previous quickfix item' })
+vim.keymap.set('n', ']Q', '<cmd>clast<CR>zz', { desc = 'Last quickfix item' })
+vim.keymap.set('n', '[Q', '<cmd>cfirst<CR>zz', { desc = 'First quickfix item' })
+
 -- Exit terminal insert mode with Ctrl+n
 vim.keymap.set('t', '<C-n>', '<C-\\><C-n>', { desc = 'Exit terminal insert mode' })
 
@@ -170,6 +176,19 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
   callback = function() vim.hl.on_yank() end,
+})
+
+-- Keep terminal buffers scrolled to the bottom when re-entering
+vim.api.nvim_create_autocmd({ 'BufEnter', 'WinEnter' }, {
+  callback = function()
+    if vim.bo.buftype == 'terminal' then
+      vim.defer_fn(function()
+        if vim.bo.buftype == 'terminal' and vim.fn.mode() == 'n' then
+          vim.cmd 'normal! G'
+        end
+      end, 10)
+    end
+  end,
 })
 
 -- Hide statusline on neo-tree
@@ -1007,5 +1026,7 @@ require('lazy').setup({
     },
   },
 })
+
+require('custom.usage-logger').setup()
 
 -- vim: ts=2 sts=2 sw=2 et
