@@ -113,6 +113,61 @@ local function publish_diagnostics(ns, items, label)
   end
 end
 
+-- Custom previewer that renders the full diagnostic message as virtual lines
+-- anchored above the error line. Auto-sizes to the message height (1 line for
+-- short errors, N lines for multi-line errors) and stays in view as you scroll.
+local ns_diag_msg = vim.api.nvim_create_namespace('diag_msg_preview')
+
+local function make_diag_previewer()
+  local previewers = require('telescope.previewers')
+  return previewers.new_buffer_previewer({
+    title = 'Diagnostic + Source',
+    get_buffer_by_name = function(_, entry) return entry.filename end,
+    define_preview = function(self, entry)
+      local bufnr = self.state.bufnr
+      local filename = entry.filename
+      if not filename or filename == '' then return end
+
+      -- Populate buffer only on first load (cached by get_buffer_by_name)
+      local existing = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+      if #existing <= 1 and (existing[1] or '') == '' then
+        local ok, lines = pcall(vim.fn.readfile, filename)
+        if not ok then return end
+        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+        local ft = vim.filetype.match({ filename = filename })
+        if ft then vim.bo[bufnr].filetype = ft end
+      end
+
+      -- Refresh the floating message: clear previous extmark, draw new one
+      vim.api.nvim_buf_clear_namespace(bufnr, ns_diag_msg, 0, -1)
+      local diag = entry.value or {}
+      local msg = diag.message or entry.text or ''
+      local severity = diag.severity or vim.diagnostic.severity.ERROR
+      local hl = severity == vim.diagnostic.severity.WARN and 'DiagnosticWarn'
+        or severity == vim.diagnostic.severity.INFO and 'DiagnosticInfo'
+        or severity == vim.diagnostic.severity.HINT and 'DiagnosticHint'
+        or 'DiagnosticError'
+
+      local virt_lines = {}
+      for _, line in ipairs(vim.split(msg, '\n', { plain = true })) do
+        table.insert(virt_lines, { { line, hl } })
+      end
+      table.insert(virt_lines, { { string.rep('─', 200), 'Comment' } })
+
+      local line_count = vim.api.nvim_buf_line_count(bufnr)
+      local target = math.min(math.max(0, (entry.lnum or 1) - 1), math.max(0, line_count - 1))
+      vim.api.nvim_buf_set_extmark(bufnr, ns_diag_msg, target, 0, {
+        virt_lines = virt_lines,
+        virt_lines_above = true,
+      })
+
+      -- Center the error line so the message sits just above it, in view.
+      pcall(vim.api.nvim_win_set_cursor, self.state.winid, { target + 1, math.max(0, (entry.col or 1) - 1) })
+      pcall(vim.api.nvim_win_call, self.state.winid, function() vim.cmd('normal! zz') end)
+    end,
+  })
+end
+
 local function run_to_qf(cmd, label, parse, ns)
   vim.notify('Running ' .. label .. '...', vim.log.levels.INFO)
   vim.system(vim.fn.split(cmd, ' '), { text = true, cwd = vim.fn.getcwd() }, function(obj)
@@ -127,7 +182,10 @@ local function run_to_qf(cmd, label, parse, ns)
       publish_diagnostics(ns, items, label)
       vim.notify(label .. ': ' .. #items .. ' items', vim.log.levels.INFO)
       if #items > 0 then
-        require('telescope.builtin').diagnostics({ prompt_title = label })
+        require('telescope.builtin').diagnostics({
+          prompt_title = label,
+          previewer = make_diag_previewer(),
+        })
       end
     end)
   end)
@@ -154,7 +212,22 @@ local function parse_eslint(line, _)
   return { filename = file, lnum = tonumber(lnum), col = tonumber(col), text = text, type = 'E' }
 end
 
-vim.keymap.set('n', '<leader>tc', function() run_to_qf('npx tsc --noEmit --pretty false', 'tsc', parse_tsc, ns_tsc) end, { desc = '[T]ypescript [C]heck (project-wide)' })
+-- Resolve `tsc` per-project: local node_modules/.bin first, then bunx (works in bun
+-- repos where typescript isn't installed but bun can fetch it), then npx as fallback.
+-- npx prints a "this is not the tsc command" stub when typescript isn't in
+-- node_modules, which the parser sees as 0 errors — auto-detection avoids that trap.
+local function resolve_tsc()
+  local cwd = vim.fn.getcwd()
+  local local_tsc = cwd .. '/node_modules/.bin/tsc'
+  if vim.fn.executable(local_tsc) == 1 then return local_tsc end
+  if vim.fn.executable('bunx') == 1 and vim.fn.filereadable(cwd .. '/bun.lock') == 1 then return 'bunx tsc' end
+  if vim.fn.executable('bunx') == 1 and vim.fn.filereadable(cwd .. '/bun.lockb') == 1 then return 'bunx tsc' end
+  return 'npx tsc'
+end
+
+vim.keymap.set('n', '<leader>tc', function()
+  run_to_qf(resolve_tsc() .. ' --noEmit --pretty false', 'tsc', parse_tsc, ns_tsc)
+end, { desc = '[T]ypescript [C]heck (project-wide)' })
 vim.keymap.set('n', '<leader>te', function() run_to_qf('npx eslint . -f compact', 'eslint', parse_eslint, ns_eslint) end, { desc = '[T]ypescript [E]slint (project-wide)' })
 
 -- File-only jumplist navigation (skips same-file jumps)

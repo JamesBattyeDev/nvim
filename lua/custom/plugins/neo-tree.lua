@@ -9,6 +9,8 @@ return {
       'nvim-lua/plenary.nvim',
       'nvim-tree/nvim-web-devicons',
       'MunifTanjim/nui.nvim',
+      -- Notify LSP on rename/move/delete so TS imports get auto-updated.
+      { 'antosha417/nvim-lsp-file-operations', config = true },
     },
     cmd = 'Neotree',
     keys = {

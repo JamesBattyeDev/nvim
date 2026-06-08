@@ -31,6 +31,10 @@ return {
       keymap = {
         preset = 'default',
         ['<CR>'] = { 'accept', 'fallback' },
+        ['<C-e>'] = { 'select_prev', 'fallback' },
+        ['<C-r>'] = { 'select_next', 'fallback' },
+        ['<C-,>'] = { 'select_prev', 'fallback' },
+        ['<C-.>'] = { 'select_next', 'fallback' },
       },
       appearance = { nerd_font_variant = 'mono' },
       completion = {
