@@ -11,3 +11,16 @@ lazy-lock.json
 
 .DS_Store
 usage/
+usage-queries/results/
+
+# Keyboard configs (local hardware state, not project config)
+karabiner.json
+karabiner.digest.json
+zsa_ergodox_ez_m32u4_glow_main_source/
+zsa_ergodox_ez_m32u4_glow_*.hex
+zsa_ergodox_ez_m32u4_glow_*.hex.md5
+ergodox.digest.json
+
+# Build/backup noise
+build.log
+automatic_backups/

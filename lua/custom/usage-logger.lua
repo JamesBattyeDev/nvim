@@ -10,8 +10,13 @@ local log_buffer = {}
 local flush_timer = nil
 local FLUSH_INTERVAL_MS = 10000
 local FLUSH_THRESHOLD = 100
+local SEQ_TIMEOUT_MS = 1500
 local CONFIG_DIR = vim.fn.stdpath 'config'
 local USAGE_DIR = CONFIG_DIR .. '/usage'
+
+-- Rolling buffer for resolving keymap sequences to their `desc` text
+local key_seq = ''
+local seq_timer = nil
 
 -- Modes where keystrokes are logged (normal, visual, visual-line, visual-block, operator-pending)
 local LOG_MODES = { n = true, v = true, V = true, ['\22'] = true, no = true }
@@ -85,6 +90,36 @@ local function flush_sync()
   end
 end
 
+local function reset_seq()
+  key_seq = ''
+  if seq_timer then
+    pcall(function()
+      seq_timer:stop()
+      seq_timer:close()
+    end)
+    seq_timer = nil
+  end
+end
+
+-- After each captured keystroke, try to resolve the accumulated buffer to a
+-- defined mapping. Logs `{ event = 'mapping', lhs, desc, mode }` on match.
+-- Resets the buffer when no defined mapping starts with the current prefix.
+local function resolve_mapping(mode)
+  if key_seq == '' then
+    return
+  end
+  local ok, m = pcall(vim.fn.maparg, key_seq, mode, false, true)
+  if ok and type(m) == 'table' and m.desc and m.desc ~= '' then
+    log_entry('mapping', { lhs = key_seq, desc = m.desc, mode = mode })
+    reset_seq()
+    return
+  end
+  local prefix_ok, mc = pcall(vim.fn.mapcheck, key_seq, mode)
+  if prefix_ok and mc == '' then
+    reset_seq()
+  end
+end
+
 local function register_on_key()
   on_key_ns = vim.on_key(function(raw, typed)
     if not enabled then
@@ -102,6 +137,17 @@ local function register_on_key()
       return
     end
     log_entry('key', { key = key, mode = mode })
+
+    -- Accumulate for mapping resolution; restart the inactivity timer.
+    key_seq = key_seq .. key
+    if not seq_timer then
+      seq_timer = vim.uv.new_timer()
+    end
+    seq_timer:stop()
+    seq_timer:start(SEQ_TIMEOUT_MS, 0, vim.schedule_wrap(reset_seq))
+    vim.schedule(function()
+      resolve_mapping(mode)
+    end)
   end)
 end
 
@@ -120,6 +166,15 @@ local function register_autocmds()
     callback = function(ev)
       local old, new = ev.match:match '(.+):(.+)'
       log_entry('ModeChanged', { old_mode = old, new_mode = new })
+      reset_seq()
+    end,
+  })
+
+  vim.api.nvim_create_autocmd('User', {
+    group = augroup,
+    pattern = 'LazyLoad',
+    callback = function(ev)
+      log_entry('PluginLoaded', { plugin = ev.data })
     end,
   })
 
@@ -208,6 +263,7 @@ function M.disable()
   enabled = false
   deregister_on_key()
   stop_timer()
+  reset_seq()
   if augroup then
     vim.api.nvim_del_augroup_by_id(augroup)
     augroup = nil
