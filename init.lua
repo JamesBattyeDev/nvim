@@ -275,6 +275,10 @@ vim.keymap.set('n', '<C-Down>', '5<C-w>-', { desc = 'Shrink window height' })
 vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv", { desc = 'Move selection down' })
 vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv", { desc = 'Move selection up' })
 
+-- Send x deletes to the black hole register so they don't clobber yanks
+vim.keymap.set({ 'n', 'v' }, 'x', '"_x')
+vim.keymap.set({ 'n', 'v' }, 'X', '"_X')
+
 -- Keep cursor centered when scrolling
 vim.keymap.set('n', '<C-d>', '<C-d>zz')
 vim.keymap.set('n', '<C-u>', '<C-u>zz')
@@ -288,6 +292,10 @@ vim.keymap.set('n', '<leader>w', '<cmd>w<CR>', { desc = '[W]rite/Save file' })
 
 -- Buffer navigation
 vim.keymap.set('n', '<leader>x', '<cmd>bdelete<CR>', { desc = 'Close buffer' })
+vim.keymap.set('n', '<leader><BS>', '<C-^>', { desc = 'Toggle alternate buffer' })
+
+-- Restart LSP clients attached to the current buffer (wraps native :lsp restart)
+vim.keymap.set('n', '<leader>lr', '<cmd>lsp restart<CR>', { desc = '[L]sp [R]estart' })
 
 -- Terminal toggle (bottom panel, supports multiple terminals)
 local terminals = {}

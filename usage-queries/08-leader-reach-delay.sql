@@ -1,13 +1,14 @@
 -- For each <leader>-led second key, the average delay between pressing leader
 -- and pressing the next key. Long delays = you're forgetting that mapping;
--- candidates for a sticky note or a less buried binding. Leader = literal Space.
+-- candidates for a sticky note or a less buried binding. Leader is logged as
+-- the literal token "<Space>" (keytrans output), not a space char.
 WITH leader_presses AS (
   SELECT
     strptime(ts, '%Y-%m-%dT%H:%M:%S.%g') AS ts,
     lead(strptime(ts, '%Y-%m-%dT%H:%M:%S.%g')) OVER (ORDER BY ts) AS next_ts,
     lead(key) OVER (ORDER BY ts) AS next_key
   FROM 'usage/*.jsonl'
-  WHERE event = 'key' AND key = ' ' AND mode = 'n'
+  WHERE event = 'key' AND key = '<Space>' AND mode = 'n'
 )
 SELECT
   next_key AS second_key,

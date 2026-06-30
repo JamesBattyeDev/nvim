@@ -1,13 +1,15 @@
--- Percentage of <leader> presses that didn't resolve to any mapping. Leader =
--- literal Space, so we look at lhs starting with ' '. A high abandon rate
--- means you're starting sequences and bailing — usually "couldn't remember."
+-- Percentage of <leader> presses that didn't resolve to any mapping. Leader
+-- shows up in the log as the token "<Space>" — either alone (the user pressed
+-- space and waited) or pre-joined with a follow-up key like "<Space>w" when
+-- typed quickly. Both forms count as "started a leader sequence."
 WITH leader_keys AS (
   SELECT count(*) AS leaders FROM 'usage/*.jsonl'
-  WHERE event = 'key' AND key = ' ' AND mode = 'n'
+  WHERE event = 'key' AND mode = 'n'
+    AND (key = '<Space>' OR key LIKE '<Space>%')
 ),
 leader_mappings AS (
   SELECT count(*) AS resolved FROM 'usage/*.jsonl'
-  WHERE event = 'mapping' AND lhs LIKE ' %'
+  WHERE event = 'mapping' AND lhs LIKE '<Space>%'
 )
 SELECT
   leaders,

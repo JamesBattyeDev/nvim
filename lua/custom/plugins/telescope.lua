@@ -17,6 +17,26 @@ return {
     },
     config = function()
       local actions = require 'telescope.actions'
+      local action_state = require 'telescope.actions.state'
+
+      local send_to_harpoon = function(prompt_bufnr)
+        local picker = action_state.get_current_picker(prompt_bufnr)
+        local picks = picker:get_multi_selection()
+        if vim.tbl_isempty(picks) then picks = { action_state.get_selected_entry() } end
+        local list = require('harpoon'):list()
+        local count = 0
+        for _, entry in ipairs(picks) do
+          local path = entry.path or entry.filename or entry.value
+          if type(path) == 'string' and path ~= '' then
+            local rel = vim.fn.fnamemodify(path, ':.')
+            list:add { value = rel, context = { row = entry.lnum or 1, col = entry.col or 0 } }
+            count = count + 1
+          end
+        end
+        actions.close(prompt_bufnr)
+        vim.notify(('Harpooned %d file%s'):format(count, count == 1 and '' or 's'))
+      end
+
       require('telescope').setup {
         defaults = {
           file_ignore_patterns = { 'node_modules', '.git/', 'dist/', '.next/' },
@@ -26,11 +46,13 @@ return {
           mappings = {
             i = {
               ['<C-q>'] = actions.smart_send_to_qflist + actions.open_qflist,
+              ['<C-h>'] = send_to_harpoon,
               ['<C-,>'] = actions.move_selection_previous,
               ['<C-.>'] = actions.move_selection_next,
             },
             n = {
               ['<C-q>'] = actions.smart_send_to_qflist + actions.open_qflist,
+              ['<C-h>'] = send_to_harpoon,
               ['<C-,>'] = actions.move_selection_previous,
               ['<C-.>'] = actions.move_selection_next,
             },
@@ -45,6 +67,29 @@ return {
 
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
+
+      -- Prefer shorter / more contiguous file matches.
+      -- fzf-native already penalises skipped chars (the "webflow." gap), but only
+      -- weakly. We wrap the file sorter so that, among similarly-scored matches,
+      -- the shorter path floats to the top: searching `TeamRecognition.tsx` puts
+      -- the exact file above `TeamRecognition.webflow.tsx`, while typing `.web`
+      -- shrinks that gap and lets the webflow file rise. Raise LENGTH_WEIGHT to
+      -- make length matter more, lower it to lean back on pure fzf relevance.
+      local ok_fzf, make_fzf = pcall(function() return require('telescope').extensions.fzf.native_fzf_sorter end)
+      if ok_fzf and make_fzf then
+        local LENGTH_WEIGHT = 0.0001
+        require('telescope.config').values.file_sorter = function(opts)
+          -- Telescope passes the picker's opts (no case_mode/fuzzy); merge fzf's defaults in.
+          local sorter = make_fzf(vim.tbl_extend('keep', opts or {}, { case_mode = 'smart_case', fuzzy = true }))
+          local inner = sorter.scoring_function
+          sorter.scoring_function = function(self, prompt, line, entry)
+            local score = inner(self, prompt, line, entry)
+            if score < 0 then return score end -- -1 means "no match", leave it filtered out
+            return score + #line * LENGTH_WEIGHT
+          end
+          return sorter
+        end
+      end
 
       local builtin = require 'telescope.builtin'
 

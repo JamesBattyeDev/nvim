@@ -22,6 +22,15 @@ return {
         container = { enable_character_fade = false },
       },
       source_selector = { statusline = false },
+      event_handlers = {
+        {
+          event = 'neo_tree_buffer_enter',
+          handler = function()
+            vim.opt_local.number = true
+            vim.opt_local.relativenumber = true
+          end,
+        },
+      },
       filesystem = {
         follow_current_file = { enabled = true }, -- Auto-reveal current file
         filtered_items = {
@@ -42,6 +51,7 @@ return {
             end
           end,
           ['h'] = 'close_node', -- Collapse folder / go to parent
+          ['H'] = 'close_all_nodes', -- Collapse every directory in the tree
           ['Y'] = function(state)
             local node = state.tree:get_node()
             local filename = node.name
@@ -54,6 +64,13 @@ return {
             local relative = vim.fn.fnamemodify(filepath, ':.')
             vim.fn.setreg('+', relative)
             vim.notify('Copied: ' .. relative)
+          end,
+          ['gh'] = function(state)
+            local node = state.tree:get_node()
+            if node.type ~= 'file' then return end
+            local rel = vim.fn.fnamemodify(node:get_id(), ':.')
+            require('harpoon'):list():add { value = rel, context = { row = 1, col = 0 } }
+            vim.notify('Harpooned: ' .. rel)
           end,
         },
       },

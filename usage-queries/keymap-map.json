@@ -1,0 +1,168 @@
+{
+  "_about": "Maps every keymap visible in the usage logs to its source (file:line), plugin, and effect. Used to interpret usage-queries/results/*.md correctly. Generated 2026-06-09 from the live config.",
+  "_corrections_to_prior_analysis": [
+    {
+      "claim": "<Space><Space>s (453 presses) is Telescope buffer search",
+      "actual": "<leader><leader>s = ToggleTerminal(2). All 453 are terminal-2 toggles.",
+      "source": "init.lua:328"
+    },
+    {
+      "claim": "Manual :w usage is ~0/day — autoformatter does all saves",
+      "actual": "<leader>w is mapped to <cmd>w<CR> and fired 2,748 times. Query 13 only catches the cmdline verb 'w', missing <cmd>-style maps. Manual save habit is alive and well.",
+      "source": "init.lua:287"
+    },
+    {
+      "claim": "<C-L>/<C-H> are tmux navigation",
+      "actual": "Pure nvim window navigation (<C-w><C-h> etc.). No tmux involved.",
+      "source": "init.lua:263-266"
+    },
+    {
+      "claim": "which-key-trigger desc represents a real action (1,191 firings)",
+      "actual": "It's which-key's own probe mapping that fires on every leader press before the real mapping resolves. Inflates the 'top mappings' chart and is mostly noise.",
+      "source": "plugin: folke/which-key.nvim"
+    },
+    {
+      "claim": "Telescope completions = 0 every day in query 10",
+      "actual": "Telescope launches from <leader>s* mappings, not the :Telescope cmdline verb. Also <CR> inside the picker fires in insert mode, which the logger excludes (LOG_MODES omits 'i'). Real picker activity is visible via ft='TelescopePrompt' on key/BufEnter events.",
+      "source": "lua/custom/usage-logger.lua:22, lua/custom/plugins/telescope.lua"
+    }
+  ],
+  "leader": "<Space>",
+  "mappings": [
+    { "lhs": "<leader>w", "mode": "n", "desc": "[W]rite/Save file", "action": ":w", "plugin": "builtin", "source": "init.lua:287" },
+    { "lhs": "<leader>x", "mode": "n", "desc": "Close buffer", "action": ":bdelete", "plugin": "builtin", "source": "init.lua:290" },
+    { "lhs": "<leader>q", "mode": "n", "desc": "Open diagnostic [Q]uickfix list", "action": "vim.diagnostic.setloclist", "plugin": "builtin", "source": "init.lua:78" },
+    { "lhs": "<leader>e", "mode": "n", "desc": "File [E]xplorer", "action": ":Neotree toggle", "plugin": "neo-tree.nvim", "source": "lua/custom/plugins/neo-tree.lua:17" },
+    { "lhs": "\\", "mode": "n", "desc": "File Explorer", "action": ":Neotree toggle", "plugin": "neo-tree.nvim", "source": "lua/custom/plugins/neo-tree.lua:18" },
+    { "lhs": "<leader>f", "mode": "nx", "desc": "[F]ormat buffer", "action": "conform.format({async=true,lsp_format='fallback'})", "plugin": "conform.nvim", "source": "lua/custom/plugins/conform.lua:11" },
+    { "lhs": "<leader>gg", "mode": "n", "desc": "Lazy[G]it", "action": ":LazyGit", "plugin": "lazygit.nvim", "source": "lua/custom/plugins/lazygit.lua:11" },
+    { "lhs": "<leader>gs", "mode": "n", "desc": "[G]it [S]tage hunk", "action": "gitsigns.stage_hunk", "plugin": "gitsigns.nvim", "source": "lua/custom/plugins/gitsigns.lua:32" },
+    { "lhs": "<leader>gr", "mode": "n", "desc": "[G]it [R]eset hunk", "action": "gitsigns.reset_hunk", "plugin": "gitsigns.nvim", "source": "lua/custom/plugins/gitsigns.lua:33" },
+    { "lhs": "<leader>gS", "mode": "n", "desc": "[G]it [S]tage buffer", "action": "gitsigns.stage_buffer", "plugin": "gitsigns.nvim", "source": "lua/custom/plugins/gitsigns.lua:34" },
+    { "lhs": "<leader>gp", "mode": "n", "desc": "[G]it [P]review hunk", "action": "gitsigns.preview_hunk", "plugin": "gitsigns.nvim", "source": "lua/custom/plugins/gitsigns.lua:35" },
+    { "lhs": "<leader>gb", "mode": "n", "desc": "[G]it [B]lame line", "action": "gitsigns.blame_line", "plugin": "gitsigns.nvim", "source": "lua/custom/plugins/gitsigns.lua:36" },
+    { "lhs": "<leader>gd", "mode": "n", "desc": "[G]it [D]iff", "action": "gitsigns.diffthis", "plugin": "gitsigns.nvim", "source": "lua/custom/plugins/gitsigns.lua:37" },
+
+    { "lhs": "<leader>sf", "mode": "n", "desc": "[S]earch [F]iles", "action": "telescope.builtin.find_files", "plugin": "telescope.nvim", "source": "lua/custom/plugins/telescope.lua:52" },
+    { "lhs": "<leader>sg", "mode": "n", "desc": "[S]earch by [G]rep", "action": "telescope.builtin.live_grep", "plugin": "telescope.nvim", "source": "lua/custom/plugins/telescope.lua:53" },
+    { "lhs": "<leader>sw", "mode": "n", "desc": "[S]earch current [W]ord", "action": "telescope.builtin.grep_string", "plugin": "telescope.nvim", "source": "lua/custom/plugins/telescope.lua:54" },
+    { "lhs": "<leader>sd", "mode": "n", "desc": "[S]earch [D]iagnostics", "action": "telescope.builtin.diagnostics", "plugin": "telescope.nvim", "source": "lua/custom/plugins/telescope.lua:55" },
+    { "lhs": "<leader>sr", "mode": "n", "desc": "[S]earch [R]esume", "action": "telescope.builtin.resume", "plugin": "telescope.nvim", "source": "lua/custom/plugins/telescope.lua:56" },
+    { "lhs": "<leader>sh", "mode": "n", "desc": "[S]earch [H]elp", "action": "telescope.builtin.help_tags", "plugin": "telescope.nvim", "source": "lua/custom/plugins/telescope.lua:57" },
+    { "lhs": "<leader>sk", "mode": "n", "desc": "[S]earch [K]eymaps", "action": "telescope.builtin.keymaps", "plugin": "telescope.nvim", "source": "lua/custom/plugins/telescope.lua:58" },
+    { "lhs": "<leader>ss", "mode": "n", "desc": "[S]earch [S]elect Telescope", "action": "telescope.builtin.builtin", "plugin": "telescope.nvim", "source": "lua/custom/plugins/telescope.lua:59" },
+    { "lhs": "<leader>s.", "mode": "n", "desc": "[S]earch Recent Files", "action": "telescope.builtin.oldfiles", "plugin": "telescope.nvim", "source": "lua/custom/plugins/telescope.lua:60" },
+    { "lhs": "<leader>sn", "mode": "n", "desc": "[S]earch [N]eovim files", "action": "telescope.builtin.find_files(stdpath('config'))", "plugin": "telescope.nvim", "source": "lua/custom/plugins/telescope.lua:89" },
+    { "lhs": "<leader>sp", "mode": "n", "desc": "[S]earch...", "action": "telescope picker (find_files variant)", "plugin": "telescope.nvim", "source": "lua/custom/plugins/telescope.lua:92" },
+
+    { "lhs": "<leader>a", "mode": "v", "desc": "[A]I rewrite selection (99)", "action": "99.visual()", "plugin": "ThePrimeagen/99", "source": "lua/custom/plugins/99.lua:21" },
+    { "lhs": "<leader>9s", "mode": "n", "desc": "[9]9 [S]earch: agentic project search → qf", "action": "99.search()", "plugin": "ThePrimeagen/99", "source": "lua/custom/plugins/99.lua:22" },
+    { "lhs": "<leader>9o", "mode": "n", "desc": "[9]9 [O]pen: last interaction result", "action": "99.open()", "plugin": "ThePrimeagen/99", "source": "lua/custom/plugins/99.lua:23" },
+    { "lhs": "<leader>9l", "mode": "n", "desc": "[9]9 view [L]ogs", "action": "99.view_logs()", "plugin": "ThePrimeagen/99", "source": "lua/custom/plugins/99.lua:24" },
+    { "lhs": "<leader>9x", "mode": "n", "desc": "[9]9 cancel ([X]) all requests", "action": "99.stop_all_requests()", "plugin": "ThePrimeagen/99", "source": "lua/custom/plugins/99.lua:25" },
+    { "lhs": "<leader>9c", "mode": "n", "desc": "[9]9 [C]lear previous requests", "action": "99.clear_previous_requests()", "plugin": "ThePrimeagen/99", "source": "lua/custom/plugins/99.lua:26" },
+
+    { "lhs": "<leader>tc", "mode": "n", "desc": "[T]ypescript [C]heck (project-wide)", "action": "run_to_qf(tsc --noEmit)", "plugin": "custom (init.lua)", "source": "init.lua:228" },
+    { "lhs": "<leader>te", "mode": "n", "desc": "[T]ypescript [E]slint (project-wide)", "action": "run_to_qf(npx eslint .)", "plugin": "custom (init.lua)", "source": "init.lua:231" },
+    { "lhs": "<leader>tu", "mode": "n", "desc": "[T]oggle [U]sage logger", "action": "usage-logger.toggle", "plugin": "custom (usage-logger)", "source": "lua/custom/usage-logger.lua:291" },
+    { "lhs": "<leader>th", "mode": "n", "desc": "LSP: [T]oggle Inlay [H]ints", "action": "vim.lsp.inlay_hint.enable(toggle)", "plugin": "nvim-lspconfig", "source": "lua/custom/plugins/lsp.lua:69", "note": "Buffer-local; only attached when LSP client supports inlay hints."},
+
+    { "lhs": "<leader><leader>a", "mode": "n", "desc": "Terminal 1", "action": "ToggleTerminal(1)", "plugin": "custom (init.lua)", "source": "init.lua:327" },
+    { "lhs": "<leader><leader>s", "mode": "n", "desc": "Terminal 2", "action": "ToggleTerminal(2)", "plugin": "custom (init.lua)", "source": "init.lua:328", "note": "453 firings — heaviest custom terminal slot." },
+    { "lhs": "<leader><leader>d", "mode": "n", "desc": "Terminal 3", "action": "ToggleTerminal(3)", "plugin": "custom (init.lua)", "source": "init.lua:329" },
+    { "lhs": "<leader><leader>f", "mode": "n", "desc": "Terminal 4", "action": "ToggleTerminal(4)", "plugin": "custom (init.lua)", "source": "init.lua:330" },
+    { "lhs": "<leader><leader>g", "mode": "n", "desc": "Terminal 5", "action": "ToggleTerminal(5)", "plugin": "custom (init.lua)", "source": "init.lua:331" },
+    { "lhs": "<leader><leader><leader>", "mode": "n", "desc": "Close all terminals", "action": "hide all toggled terminal windows", "plugin": "custom (init.lua)", "source": "init.lua:334" },
+
+    { "lhs": "<C-h>", "mode": "n", "desc": "Move focus left", "action": "<C-w><C-h>", "plugin": "builtin window-nav", "source": "init.lua:263" },
+    { "lhs": "<C-l>", "mode": "n", "desc": "Move focus right", "action": "<C-w><C-l>", "plugin": "builtin window-nav", "source": "init.lua:264" },
+    { "lhs": "<C-j>", "mode": "n", "desc": "Move focus down", "action": "<C-w><C-j>", "plugin": "builtin window-nav", "source": "init.lua:265" },
+    { "lhs": "<C-k>", "mode": "n", "desc": "Move focus up", "action": "<C-w><C-k>", "plugin": "builtin window-nav", "source": "init.lua:266" },
+    { "lhs": "<C-Left>", "mode": "n", "desc": "Shrink window width", "action": "20<C-w><", "plugin": "builtin", "source": "init.lua:269" },
+    { "lhs": "<C-Right>", "mode": "n", "desc": "Grow window width", "action": "20<C-w>>", "plugin": "builtin", "source": "init.lua:270" },
+    { "lhs": "<C-Up>", "mode": "n", "desc": "Grow window height", "action": "5<C-w>+", "plugin": "builtin", "source": "init.lua:271" },
+    { "lhs": "<C-Down>", "mode": "n", "desc": "Shrink window height", "action": "5<C-w>-", "plugin": "builtin", "source": "init.lua:272" },
+
+    { "lhs": "<C-o>", "mode": "n", "desc": "Jump to previous file", "action": "jump_to_different_file('back') — file-only jumplist", "plugin": "custom (init.lua)", "source": "init.lua:256" },
+    { "lhs": "<C-i>", "mode": "n", "desc": "Jump to next file", "action": "jump_to_different_file('forward') — file-only jumplist", "plugin": "custom (init.lua)", "source": "init.lua:257" },
+    { "lhs": "<C-d>", "mode": "n", "desc": "Scroll half-page down + recenter", "action": "<C-d>zz", "plugin": "builtin override", "source": "init.lua:279" },
+    { "lhs": "<C-u>", "mode": "n", "desc": "Scroll half-page up + recenter", "action": "<C-u>zz", "plugin": "builtin override", "source": "init.lua:280" },
+    { "lhs": "n", "mode": "n", "desc": "Next search hit + recenter", "action": "nzzzv", "plugin": "builtin override", "source": "init.lua:283" },
+    { "lhs": "N", "mode": "n", "desc": "Prev search hit + recenter", "action": "Nzzzv", "plugin": "builtin override", "source": "init.lua:284" },
+    { "lhs": "<Esc>", "mode": "n", "desc": "Clear search highlight", "action": ":nohlsearch", "plugin": "builtin override", "source": "init.lua:75" },
+
+    { "lhs": "<C-n>", "mode": "t", "desc": "Exit terminal insert mode", "action": "<C-\\><C-n>", "plugin": "builtin override", "source": "init.lua:260" },
+
+    { "lhs": "J", "mode": "v", "desc": "Move selection down", "action": ":m '>+1<CR>gv=gv", "plugin": "builtin override", "source": "init.lua:275" },
+    { "lhs": "K", "mode": "v", "desc": "Move selection up", "action": ":m '<-2<CR>gv=gv", "plugin": "builtin override", "source": "init.lua:276" },
+
+    { "lhs": "]q", "mode": "n", "desc": "Next quickfix item", "action": ":cnext|zz", "plugin": "builtin override", "source": "init.lua:81" },
+    { "lhs": "[q", "mode": "n", "desc": "Previous quickfix item", "action": ":cprev|zz", "plugin": "builtin override", "source": "init.lua:82" },
+    { "lhs": "]Q", "mode": "n", "desc": "Last quickfix item", "action": ":clast|zz", "plugin": "builtin override", "source": "init.lua:83" },
+    { "lhs": "[Q", "mode": "n", "desc": "First quickfix item", "action": ":cfirst|zz", "plugin": "builtin override", "source": "init.lua:84" },
+
+    { "lhs": "{", "mode": "n", "desc": "Prev paragraph (whitespace-aware)", "action": "jump_paragraph('up') — TermOpen only", "plugin": "custom (init.lua)", "source": "init.lua:382", "note": "Buffer-local: only attached inside :terminal buffers, but the desc-counted firings include normal-buffer { presses too only because all paragraph jumps go through this when in a term. In normal source files, { uses Vim's default." },
+    { "lhs": "}", "mode": "n", "desc": "Next paragraph (whitespace-aware)", "action": "jump_paragraph('down') — TermOpen only", "plugin": "custom (init.lua)", "source": "init.lua:381" },
+
+    { "lhs": "grn", "mode": "n", "desc": "LSP: [R]e[n]ame", "action": "vim.lsp.buf.rename", "plugin": "nvim-lspconfig", "source": "lua/custom/plugins/lsp.lua:21" },
+    { "lhs": "gra", "mode": "nx", "desc": "LSP: [G]oto Code [A]ction", "action": "vim.lsp.buf.code_action", "plugin": "nvim-lspconfig", "source": "lua/custom/plugins/lsp.lua:22" },
+    { "lhs": "grr", "mode": "n", "desc": "LSP: [G]oto [R]eferences", "action": "telescope.builtin.lsp_references", "plugin": "nvim-lspconfig + telescope", "source": "lua/custom/plugins/lsp.lua:23" },
+    { "lhs": "gri", "mode": "n", "desc": "LSP: [G]oto [I]mplementation", "action": "telescope.builtin.lsp_implementations", "plugin": "nvim-lspconfig + telescope", "source": "lua/custom/plugins/lsp.lua:24" },
+    { "lhs": "grd", "mode": "n", "desc": "LSP: [G]oto [D]efinition", "action": "vim.lsp.buf.definition", "plugin": "nvim-lspconfig", "source": "lua/custom/plugins/lsp.lua:25" },
+    { "lhs": "grD", "mode": "n", "desc": "LSP: [G]oto [D]eclaration", "action": "vim.lsp.buf.declaration", "plugin": "nvim-lspconfig", "source": "lua/custom/plugins/lsp.lua:26" },
+    { "lhs": "gO", "mode": "n", "desc": "LSP: Open Document Symbols", "action": "telescope.builtin.lsp_document_symbols", "plugin": "nvim-lspconfig + telescope", "source": "lua/custom/plugins/lsp.lua:27" },
+    { "lhs": "gW", "mode": "n", "desc": "LSP: Open Workspace Symbols", "action": "telescope.builtin.lsp_dynamic_workspace_symbols", "plugin": "nvim-lspconfig + telescope", "source": "lua/custom/plugins/lsp.lua:28" },
+    { "lhs": "grt", "mode": "n", "desc": "LSP: [G]oto [T]ype Definition", "action": "telescope.builtin.lsp_type_definitions", "plugin": "nvim-lspconfig + telescope", "source": "lua/custom/plugins/lsp.lua:29" },
+    { "lhs": "K", "mode": "n", "desc": "LSP: Hover Documentation", "action": "vim.lsp.buf.hover", "plugin": "nvim-lspconfig", "source": "lua/custom/plugins/lsp.lua:30", "note": "Buffer-local on LSP attach; only fires in LSP-attached buffers." },
+
+    { "lhs": "]h", "mode": "n", "desc": "Next git [H]unk", "action": "gitsigns.next_hunk", "plugin": "gitsigns.nvim", "source": "lua/custom/plugins/gitsigns.lua:28" },
+    { "lhs": "[h", "mode": "n", "desc": "Prev git [H]unk", "action": "gitsigns.prev_hunk", "plugin": "gitsigns.nvim", "source": "lua/custom/plugins/gitsigns.lua:29" },
+
+    { "lhs": "]m", "mode": "nxo", "desc": "Next function start", "action": "treesitter-textobjects.move.goto_next_start('@function.outer')", "plugin": "nvim-treesitter-textobjects", "source": "lua/custom/plugins/treesitter-textobjects.lua:13" },
+    { "lhs": "]M", "mode": "nxo", "desc": "Next function end", "action": "treesitter-textobjects.move.goto_next_end('@function.outer')", "plugin": "nvim-treesitter-textobjects", "source": "lua/custom/plugins/treesitter-textobjects.lua:19" },
+    { "lhs": "[m", "mode": "nxo", "desc": "Previous function start", "action": "treesitter-textobjects.move.goto_previous_start('@function.outer')", "plugin": "nvim-treesitter-textobjects", "source": "lua/custom/plugins/treesitter-textobjects.lua:25" },
+    { "lhs": "[M", "mode": "nxo", "desc": "Previous function end", "action": "treesitter-textobjects.move.goto_previous_end('@function.outer')", "plugin": "nvim-treesitter-textobjects", "source": "lua/custom/plugins/treesitter-textobjects.lua:31" },
+
+    { "lhs": "zR", "mode": "n", "desc": "Open all folds", "action": "ufo.openAllFolds", "plugin": "nvim-ufo", "source": "lua/custom/plugins/ufo.lua:44" },
+    { "lhs": "zM", "mode": "n", "desc": "Close all folds", "action": "ufo.closeAllFolds", "plugin": "nvim-ufo", "source": "lua/custom/plugins/ufo.lua:45" },
+    { "lhs": "zr", "mode": "n", "desc": "Open folds except kinds", "action": "ufo.openFoldsExceptKinds", "plugin": "nvim-ufo", "source": "lua/custom/plugins/ufo.lua:46" },
+    { "lhs": "zm", "mode": "n", "desc": "Close folds with level", "action": "ufo.closeFoldsWith", "plugin": "nvim-ufo", "source": "lua/custom/plugins/ufo.lua:47" },
+    { "lhs": "zp", "mode": "n", "desc": "Peek folded lines", "action": "ufo.peekFoldedLinesUnderCursor", "plugin": "nvim-ufo", "source": "lua/custom/plugins/ufo.lua:48" }
+  ],
+
+  "neo_tree_buffer_local": [
+    { "lhs": "<space>", "desc": "(disabled — leave room for global leader)", "action": "'none'", "source": "lua/custom/plugins/neo-tree.lua:46" },
+    { "lhs": "l", "desc": "Expand directory (or noop on file)", "action": "toggle_directory", "source": "lua/custom/plugins/neo-tree.lua:47-52" },
+    { "lhs": "h", "desc": "close_node", "action": "collapse folder / go to parent", "source": "lua/custom/plugins/neo-tree.lua:53" },
+    { "lhs": "H", "desc": "close_all_nodes", "action": "collapse every directory in tree", "source": "lua/custom/plugins/neo-tree.lua:54" },
+    { "lhs": "Y", "desc": "Copy filename to clipboard", "action": "setreg('+', node.name)", "source": "lua/custom/plugins/neo-tree.lua:55-60" },
+    { "lhs": "y", "desc": "Copy relative path to clipboard", "action": "setreg('+', relative-path)", "source": "lua/custom/plugins/neo-tree.lua:61-67" }
+  ],
+
+  "blink_cmp_keymap": [
+    { "lhs": "<CR>", "desc": "Accept completion (fallback to CR)", "action": "'accept', 'fallback'", "source": "lua/custom/plugins/blink.lua:33", "note": "Fires in insert mode only — logger excludes 'i' so this never appears in the data." },
+    { "lhs": "<C-e>", "desc": "blink.cmp: select_prev (fallback)", "action": "'select_prev', 'fallback'", "source": "lua/custom/plugins/blink.lua:34" },
+    { "lhs": "<C-r>", "desc": "blink.cmp: select_next (fallback)", "action": "'select_next', 'fallback'", "source": "lua/custom/plugins/blink.lua:35", "note": "Overlaps with normal-mode redo — but redo fires in normal, this fires in insert. The 'redo rare (~2/day)' reading in the analysis stands." },
+    { "lhs": "<C-,>", "desc": "blink.cmp: select_prev (fallback)", "action": "'select_prev', 'fallback'", "source": "lua/custom/plugins/blink.lua:36" },
+    { "lhs": "<C-.>", "desc": "blink.cmp: select_next (fallback)", "action": "'select_next', 'fallback'", "source": "lua/custom/plugins/blink.lua:37" }
+  ],
+
+  "key_chord_interpretation": {
+    "_about": "Reinterprets the raw `key` events from query 05 with the true binding.",
+    "<Space>": { "raw_count_normal_mode": 6571, "meaning": "Solo leader press — user pressed Space and waited for which-key. Not a final mapping." },
+    "<Space>w": { "raw_count_normal_mode": 2748, "meaning": "<leader>w → :w (save file). This is the real save count — query 13 misses it because <cmd>w<CR> doesn't enter cmdline mode." },
+    "<Space><Space>s": { "raw_count_normal_mode": 453, "meaning": "<leader><leader>s → ToggleTerminal(2). Most-used custom terminal slot. NOT a Telescope search." },
+    "<C-L>": { "raw_count_normal_mode": 831, "meaning": "Move focus right (<C-w><C-l>) — nvim split nav, no tmux." },
+    "<C-H>": { "raw_count_normal_mode": 817, "meaning": "Move focus left (<C-w><C-h>) — nvim split nav." },
+    "<C-W>": { "raw_count_normal_mode": 446, "meaning": "Built-in window-operations prefix. Many of these chain to a second key the logger captures as a combined event." },
+    "{": { "raw_count_normal_mode": 5681, "meaning": "Prev paragraph. In :terminal buffers uses the custom whitespace-aware jump; in source files uses Vim's default." },
+    "}": { "raw_count_normal_mode": 5102, "meaning": "Next paragraph — same as { with direction flipped." }
+  },
+
+  "known_logger_limitations_affecting_analysis": [
+    "LOG_MODES excludes insert ('i'), command ('c'), terminal-insert ('t'), and replace modes — so <CR> in blink.cmp, <CR> in TelescopePrompt, every typed character in insert, and every terminal input is invisible. Heavy terminal/insert activity is undercounted.",
+    "<cmd>...<CR>-style mappings (like <leader>w → <cmd>w<CR>) bypass cmdline mode entirely, so the CmdlineLeave-based queries (02, 10, 13) miss them.",
+    "which-key intercepts leader sequences and registers as 'which-key-trigger' before the real mapping resolves — inflating top-mappings (query 01) and obscuring per-mapping counts (07).",
+    "Mapping resolution only logs when the resolved mapping has a non-empty `desc`. Many built-in or which-key-internal mappings have empty descs and don't get logged, contributing to the 91% 'abandon' rate in query 16."
+  ]
+}

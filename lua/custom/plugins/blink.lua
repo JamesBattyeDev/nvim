@@ -38,6 +38,12 @@ return {
       },
       appearance = { nerd_font_variant = 'mono' },
       completion = {
+        -- Don't auto-highlight the first item. Without this, <CR> for a newline
+        -- "accepts" the preselected item (e.g. a `mutate({})` snippet that
+        -- overwrites the {} autopairs just inserted). Now nothing is selected
+        -- until you navigate with <C-.>/<C-,>, so <CR> stays a plain newline and
+        -- only accepts when you've deliberately picked something.
+        list = { selection = { preselect = false, auto_insert = true } },
         documentation = { auto_show = true, auto_show_delay_ms = 200 },
       },
       sources = {

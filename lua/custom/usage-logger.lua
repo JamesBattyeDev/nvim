@@ -104,17 +104,46 @@ end
 -- After each captured keystroke, try to resolve the accumulated buffer to a
 -- defined mapping. Logs `{ event = 'mapping', lhs, desc, mode }` on match.
 -- Resets the buffer when no defined mapping starts with the current prefix.
-local function resolve_mapping(mode)
+--
+-- `orig_buf` is the buffer that was current when the keystroke fired. We have
+-- to query maparg/mapcheck in that buffer's context (via nvim_buf_call),
+-- because the scheduled lookup runs AFTER the mapped action has executed —
+-- which for LSP gotos, Telescope pickers, and rename floats means we've
+-- already switched to a different buffer with different (or no) buffer-local
+-- mappings. Querying the current buffer at lookup time loses those events
+-- silently. We also log the source buf/ft, not the destination's.
+local function resolve_mapping(mode, orig_buf)
   if key_seq == '' then
     return
   end
-  local ok, m = pcall(vim.fn.maparg, key_seq, mode, false, true)
-  if ok and type(m) == 'table' and m.desc and m.desc ~= '' then
-    log_entry('mapping', { lhs = key_seq, desc = m.desc, mode = mode })
+  if not vim.api.nvim_buf_is_valid(orig_buf) then
     reset_seq()
     return
   end
-  local prefix_ok, mc = pcall(vim.fn.mapcheck, key_seq, mode)
+  local ok, m = pcall(vim.api.nvim_buf_call, orig_buf, function()
+    return vim.fn.maparg(key_seq, mode, false, true)
+  end)
+  if ok and type(m) == 'table' and m.desc and m.desc ~= '' then
+    log_entry('mapping', {
+      lhs = key_seq,
+      desc = m.desc,
+      mode = mode,
+      buf = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(orig_buf), ':t'),
+      ft = vim.bo[orig_buf].filetype,
+    })
+    -- which-key registers its popup trigger as a real mapping on <leader>.
+    -- If we reset on that match, slow-typed leader sequences (where the user
+    -- pauses for the popup) lose the prefix and the real mapping — e.g.
+    -- <leader>sf — never resolves. Keep accumulating instead; the inactivity
+    -- timer will still reset if the user truly walks away.
+    if not m.desc:match('^which%-key%-trigger') then
+      reset_seq()
+    end
+    return
+  end
+  local prefix_ok, mc = pcall(vim.api.nvim_buf_call, orig_buf, function()
+    return vim.fn.mapcheck(key_seq, mode)
+  end)
   if prefix_ok and mc == '' then
     reset_seq()
   end
@@ -136,6 +165,7 @@ local function register_on_key()
     if key == '' then
       return
     end
+    local orig_buf = vim.api.nvim_get_current_buf()
     log_entry('key', { key = key, mode = mode })
 
     -- Accumulate for mapping resolution; restart the inactivity timer.
@@ -146,7 +176,7 @@ local function register_on_key()
     seq_timer:stop()
     seq_timer:start(SEQ_TIMEOUT_MS, 0, vim.schedule_wrap(reset_seq))
     vim.schedule(function()
-      resolve_mapping(mode)
+      resolve_mapping(mode, orig_buf)
     end)
   end)
 end
