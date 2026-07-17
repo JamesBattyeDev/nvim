@@ -2,8 +2,6 @@
 
 Personal Neovim configuration built on [kickstart.nvim](https://github.com/nvim-lua/kickstart.nvim).
 
-<!-- ![screenshot](screenshot.png) -->
-
 ## Features
 
 - **Catppuccin Mocha** colour scheme
@@ -66,112 +64,112 @@ Leader is **Space**.
 
 ### General
 
-| Key | Action |
-| --- | --- |
-| `<leader>w` | Save file |
-| `<leader>x` | Close buffer |
-| `<leader>f` | Format buffer |
-| `<leader>e` | Toggle file explorer |
-| `<leader>q` | Diagnostics quickfix list (open buffers) |
-| `<C-h/j/k/l>` | Navigate windows |
-| `J` / `K` (visual) | Move selection up/down |
-| `<C-o>` / `<C-i>` | Jump to previous / next *different* file (skips same-file jumps) |
+| Key                | Action                                                           |
+| ------------------ | ---------------------------------------------------------------- |
+| `<leader>w`        | Save file                                                        |
+| `<leader>x`        | Close buffer                                                     |
+| `<leader>f`        | Format buffer                                                    |
+| `<leader>e`        | Toggle file explorer                                             |
+| `<leader>q`        | Diagnostics quickfix list (open buffers)                         |
+| `<C-h/j/k/l>`      | Navigate windows                                                 |
+| `J` / `K` (visual) | Move selection up/down                                           |
+| `<C-o>` / `<C-i>`  | Jump to previous / next _different_ file (skips same-file jumps) |
 
 ### Search (Telescope)
 
-| Key | Action |
-| --- | --- |
-| `<leader>sf` | Find files |
-| `<leader>sg` | Live grep |
-| `<leader>sw` | Search current word |
+| Key          | Action                            |
+| ------------ | --------------------------------- |
+| `<leader>sf` | Find files                        |
+| `<leader>sg` | Live grep                         |
+| `<leader>sw` | Search current word               |
 | `<leader>sd` | Search diagnostics (open buffers) |
-| `<leader>sr` | Resume last search |
-| `<leader>s.` | Recent files |
-| `<leader>/` | Fuzzy search in buffer |
-| `<leader>sp` | Project switcher |
+| `<leader>sr` | Resume last search                |
+| `<leader>s.` | Recent files                      |
+| `<leader>/`  | Fuzzy search in buffer            |
+| `<leader>sp` | Project switcher                  |
 
 ### Diagnostics (project-wide)
 
 Runs an external tool, parses output into the quickfix list, then opens it as a
 Telescope picker in vertical layout (full-width rows so messages aren't truncated).
 
-| Key | Action |
-| --- | --- |
-| `<leader>tc` | Run `tsc --noEmit` across the project |
+| Key          | Action                                       |
+| ------------ | -------------------------------------------- |
+| `<leader>tc` | Run `tsc --noEmit` across the project        |
 | `<leader>te` | Run `eslint . -f compact` across the project |
-| `]q` / `[q` | Next / prev quickfix item |
-| `]Q` / `[Q` | Last / first quickfix item |
+| `]q` / `[q`  | Next / prev quickfix item                    |
+| `]Q` / `[Q`  | Last / first quickfix item                   |
 
 ### Git
 
-| Key | Action |
-| --- | --- |
-| `<leader>gg` | LazyGit |
-| `<leader>gs` | Stage hunk |
-| `<leader>gr` | Reset hunk |
-| `<leader>gp` | Preview hunk |
-| `<leader>gb` | Blame line |
-| `]h` / `[h` | Next / prev hunk |
+| Key          | Action           |
+| ------------ | ---------------- |
+| `<leader>gg` | LazyGit          |
+| `<leader>gs` | Stage hunk       |
+| `<leader>gr` | Reset hunk       |
+| `<leader>gp` | Preview hunk     |
+| `<leader>gb` | Blame line       |
+| `]h` / `[h`  | Next / prev hunk |
 
 ### LSP
 
 Uses Neovim 0.11+'s native `gr*` mappings.
 
-| Key | Action |
-| --- | --- |
-| `grd` | Go to definition |
-| `grr` | Go to references |
-| `gri` | Go to implementation |
-| `grn` | Rename symbol |
-| `gra` | Code action |
-| `K` | Hover docs |
-| `gO` / `gW` | Document / workspace symbols |
-| `<leader>th` | Toggle inlay hints |
+| Key          | Action                       |
+| ------------ | ---------------------------- |
+| `grd`        | Go to definition             |
+| `grr`        | Go to references             |
+| `gri`        | Go to implementation         |
+| `grn`        | Rename symbol                |
+| `gra`        | Code action                  |
+| `K`          | Hover docs                   |
+| `gO` / `gW`  | Document / workspace symbols |
+| `<leader>th` | Toggle inlay hints           |
 
 ### Treesitter navigation
 
-| Key | Action |
-| --- | --- |
-| `]f` / `[f` | Next / prev function start |
-| `]F` / `[F` | Next / prev function end |
+| Key         | Action                                 |
+| ----------- | -------------------------------------- |
+| `]f` / `[f` | Next / prev function start             |
+| `]F` / `[F` | Next / prev function end               |
 | `af` / `if` | Around / inside function (text object) |
-| `ac` / `ic` | Around / inside class (text object) |
+| `ac` / `ic` | Around / inside class (text object)    |
 
 ### AI (99)
 
 99 shells out to your local `claude` CLI; it inherits your Claude Max session
 via OAuth, no `ANTHROPIC_API_KEY` needed.
 
-| Key | Mode | Action |
-| --- | --- | --- |
-| `<leader>9s` | n | Agentic project search → quickfix |
-| `<leader>a` | v / V / ^V | Send selection + prompt, replace with output |
-| `<leader>9o` | n | Reopen last interaction result |
-| `<leader>9l` | n | View 99 logs |
-| `<leader>9x` | n | Cancel all in-flight requests |
-| `<leader>9c` | n | Clear previous requests |
+| Key          | Mode       | Action                                       |
+| ------------ | ---------- | -------------------------------------------- |
+| `<leader>9s` | n          | Agentic project search → quickfix            |
+| `<leader>a`  | v / V / ^V | Send selection + prompt, replace with output |
+| `<leader>9o` | n          | Reopen last interaction result               |
+| `<leader>9l` | n          | View 99 logs                                 |
+| `<leader>9x` | n          | Cancel all in-flight requests                |
+| `<leader>9c` | n          | Clear previous requests                      |
 
 ### Terminals
 
 Five persistent terminal slots, each its own buffer. Re-toggling reopens the same
 shell session (history preserved).
 
-| Key | Action |
-| --- | --- |
-| `<leader><leader>a` | Toggle terminal 1 |
-| `<leader><leader>s` | Toggle terminal 2 *(currently the Claude / AI workspace — migrating to in-editor [99](#ai-99))* |
-| `<leader><leader>d` | Toggle terminal 3 |
-| `<leader><leader>f` | Toggle terminal 4 |
-| `<leader><leader>g` | Toggle terminal 5 |
-| `<leader><leader><leader>` | Close all open terminals |
-| `<C-n>` | Exit terminal insert mode |
+| Key                        | Action                                                                                          |
+| -------------------------- | ----------------------------------------------------------------------------------------------- |
+| `<leader><leader>a`        | Toggle terminal 1                                                                               |
+| `<leader><leader>s`        | Toggle terminal 2 _(currently the Claude / AI workspace — migrating to in-editor [99](#ai-99))_ |
+| `<leader><leader>d`        | Toggle terminal 3                                                                               |
+| `<leader><leader>f`        | Toggle terminal 4                                                                               |
+| `<leader><leader>g`        | Toggle terminal 5                                                                               |
+| `<leader><leader><leader>` | Close all open terminals                                                                        |
+| `<C-n>`                    | Exit terminal insert mode                                                                       |
 
 ### Misc
 
-| Key | Action |
-| --- | --- |
+| Key          | Action                                               |
+| ------------ | ---------------------------------------------------- |
 | `<leader>tu` | Toggle usage logger (writes to `usage/<date>.jsonl`) |
-| `<Esc>` | Clear search highlight |
+| `<Esc>`      | Clear search highlight                               |
 
 ## Usage logger
 
