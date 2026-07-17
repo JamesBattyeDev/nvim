@@ -230,32 +230,6 @@ vim.keymap.set('n', '<leader>tc', function()
 end, { desc = '[T]ypescript [C]heck (project-wide)' })
 vim.keymap.set('n', '<leader>te', function() run_to_qf('npx eslint . -f compact', 'eslint', parse_eslint, ns_eslint) end, { desc = '[T]ypescript [E]slint (project-wide)' })
 
--- File-only jumplist navigation (skips same-file jumps)
-local function jump_to_different_file(direction)
-  local current_buf = vim.api.nvim_get_current_buf()
-  local jumps = vim.fn.getjumplist()
-  local entries = jumps[1]
-  local pos = jumps[2] -- 0-indexed position in jumplist
-
-  local step = direction == 'back' and -1 or 1
-  local i = pos + step
-
-  while i >= 0 and i < #entries do
-    local entry = entries[i + 1] -- lua is 1-indexed
-    if entry.bufnr ~= current_buf and vim.api.nvim_buf_is_valid(entry.bufnr) then
-      local count = math.abs(i - pos)
-      local key = direction == 'back' and '<C-o>' or '<C-i>'
-      local keys = vim.api.nvim_replace_termcodes(count .. key, true, false, true)
-      vim.api.nvim_feedkeys(keys, 'n', false)
-      return
-    end
-    i = i + step
-  end
-end
-
-vim.keymap.set('n', '<C-o>', function() jump_to_different_file 'back' end, { desc = 'Jump to previous file' })
-vim.keymap.set('n', '<C-i>', function() jump_to_different_file 'forward' end, { desc = 'Jump to next file' })
-
 -- Exit terminal insert mode with Ctrl+n
 vim.keymap.set('t', '<C-n>', '<C-\\><C-n>', { desc = 'Exit terminal insert mode' })
 

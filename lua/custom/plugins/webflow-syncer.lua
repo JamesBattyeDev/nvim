@@ -3,7 +3,7 @@ return {
   -- WEBFLOW: Project syncer (local dev plugin)
   -- ========================================================================
   {
-    dir = '~/Code/personal/webflow-project-syncer',
+    dir = '~/Code/products/webflow-project-syncer',
     cmd = 'WebflowSync',
     ft = { 'javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'html', 'css', 'vue', 'svelte', 'astro' },
     opts = {

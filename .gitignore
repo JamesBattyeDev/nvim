@@ -24,3 +24,6 @@ ergodox.digest.json
 # Build/backup noise
 build.log
 automatic_backups/
+
+# Local explanation/plan docs (personal, not project config)
+explainations/

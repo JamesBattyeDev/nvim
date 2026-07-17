@@ -38,21 +38,20 @@ return {
       },
       appearance = { nerd_font_variant = 'mono' },
       completion = {
-        -- Don't auto-highlight the first item. Without this, <CR> for a newline
-        -- "accepts" the preselected item (e.g. a `mutate({})` snippet that
-        -- overwrites the {} autopairs just inserted). Now nothing is selected
-        -- until you navigate with <C-.>/<C-,>, so <CR> stays a plain newline and
-        -- only accepts when you've deliberately picked something.
-        list = { selection = { preselect = false, auto_insert = true } },
+        -- Auto-highlight the first item so <CR> accepts it without navigating.
+        list = { selection = { preselect = true, auto_insert = false } },
         documentation = { auto_show = true, auto_show_delay_ms = 200 },
       },
       sources = {
         -- 'snippets' removed — friendly-snippets noise was polluting property-access completions.
         -- Re-add 'snippets' to restore LuaSnip + friendly-snippets autocompletion.
         default = { 'lsp', 'path', 'lazydev' },
+        -- Org completion (headings, tags, TODO keywords) only in .org buffers.
+        per_filetype = { org = { 'orgmode', 'path', 'buffer' } },
         providers = {
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
           webflow = { name = 'Webflow', module = 'webflow-syncer.blink' },
+          orgmode = { name = 'Orgmode', module = 'orgmode.org.autocompletion.blink', fallbacks = { 'buffer' } },
         },
       },
       snippets = { preset = 'luasnip' },
